@@ -12,4 +12,5 @@ public interface GroupAdminMapper {
     int upsert(GroupAdmin grpAdmin);
     List<GroupAdmin> qryAdmins(@Param("appkey")String appkey, @Param("groupId")String groupId);
     int batchDel(@Param("appkey")String appkey, @Param("groupId")String groupId, @Param("adminIds")List<String> adminIds);
+    Boolean checkAdmin(@Param("appkey")String appkey, @Param("groupId")String groupId, @Param("adminId")String adminId);
 }

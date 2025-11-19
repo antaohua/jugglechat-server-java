@@ -12,4 +12,6 @@ public interface SmsRecordMapper {
     int create(SmsRecord record);
     SmsRecord findByPhoneCode(@Param("appkey")String appkey, @Param("phone")String phone, @Param("code")String code);
     SmsRecord findByPhone(@Param("appkey")String appkey, @Param("phone")String phone, @Param("start")Timestamp start);
+    SmsRecord findByEmailCode(@Param("appkey")String appkey, @Param("email")String email, @Param("code")String code);
+    SmsRecord findByEmail(@Param("appkey")String appkey, @Param("email")String email, @Param("start")Timestamp start);
 }

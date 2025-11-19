@@ -54,9 +54,26 @@
         ORDER BY m.id ASC LIMIT #{limit}
     </select>
 
+    <select id="searchMembersByName" resultMap="BaseResultMapWithUser">
+        SELECT m.*,u.nickname,u.user_portrait from groupmembers as m left join users as u on m.app_key=u.app_key and m.member_id=u.user_id
+        WHERE m.app_key=#{appkey} AND m.group_id=#{groupId} AND m.id &gt; #{startId}
+        AND (
+            u.nickname LIKE CONCAT('%', #{key}, '%')
+            OR u.user_id LIKE CONCAT('%', #{key}, '%')
+        )
+        ORDER BY m.id ASC LIMIT #{limit}
+    </select>
+
     <select id="queryGroupsByMemberId" resultMap="BaseResultMapWithGroup">
         SELECT m.*,g.group_name,g.group_portrait FROM groupmembers AS m left join groupinfos as g on m.app_key=g.app_key AND m.group_id=g.group_id
         WHERE m.app_key=#{appkey} AND m.member_id=#{memberId} AND m.id &gt; #{startId}
+        ORDER BY m.id ASC LIMIT #{limit}
+    </select>
+
+    <select id="searchGroupsByMemberId" resultMap="BaseResultMapWithGroup">
+        SELECT m.*,g.group_name,g.group_portrait FROM groupmembers AS m left join groupinfos as g on m.app_key=g.app_key AND m.group_id=g.group_id
+        WHERE m.app_key=#{appkey} AND m.member_id=#{memberId} AND m.id &gt; #{startId}
+        AND g.group_name LIKE CONCAT('%', #{keyword}, '%')
         ORDER BY m.id ASC LIMIT #{limit}
     </select>
 

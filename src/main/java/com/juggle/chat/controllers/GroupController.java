@@ -18,11 +18,22 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import com.juggle.chat.apimodels.CheckGroupMembersReq;
+import com.juggle.chat.apimodels.CheckGroupMembersResp;
+import com.juggle.chat.apimodels.GroupAnnouncement;
+import com.juggle.chat.apimodels.GroupConfirm;
 import com.juggle.chat.apimodels.GroupInfo;
 import com.juggle.chat.apimodels.GroupInvite;
 import com.juggle.chat.apimodels.GroupInviteResp;
+import com.juggle.chat.apimodels.GroupMemberInfos;
+import com.juggle.chat.apimodels.GroupMembersReq;
+import com.juggle.chat.apimodels.Groups;
 import com.juggle.chat.apimodels.QrCode;
+import com.juggle.chat.apimodels.QryGrpApplicationsResp;
 import com.juggle.chat.apimodels.Result;
+import com.juggle.chat.apimodels.SearchGroupMembersReq;
+import com.juggle.chat.apimodels.SearchReq;
+import com.juggle.chat.apimodels.SetGroupDisplayNameReq;
 import com.juggle.chat.exceptions.JimErrorCode;
 import com.juggle.chat.exceptions.JimException;
 import com.juggle.chat.interceptors.RequestContext;
@@ -116,67 +127,201 @@ public class GroupController {
     }
 
     @PostMapping("/quit")
-    public Result quitGroup(){
-        return new Result(0, "");
+    public Result quitGroup(@RequestBody GroupInfo grpInfo){
+        if(grpInfo==null||grpInfo.getGroupId()==null||grpInfo.getGroupId().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        this.grpService.quitGroup(grpInfo.getGroupId());
+        return Result.success(null);
     }
 
     @PostMapping("/members/add")
-    public Result addGrpMembers(){
-        return new Result(0, "");
+    public Result addGrpMembers(@RequestBody GroupMembersReq req){
+        if(req==null||req.getGroupId()==null||req.getGroupId().isEmpty()
+                || req.getMemberIds()==null||req.getMemberIds().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        this.grpService.addGrpMembers(req);
+        return Result.success(null);
     }
 
     @PostMapping("/members/del")
-    public Result delGrpMembers(){
-        return new Result(0, "");
+    public Result delGrpMembers(@RequestBody GroupMembersReq req){
+        if(req==null||req.getGroupId()==null||req.getGroupId().isEmpty()
+                || req.getMemberIds()==null||req.getMemberIds().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        this.grpService.delGrpMembers(req);
+        return Result.success(null);
     }
 
     @GetMapping("/members/list")
-    public Result qryGrpMembers(){
-        return new Result(0, "");
+    public Result qryGrpMembers(@RequestParam("group_id") String groupId,
+            @RequestParam(value = "offset", required = false) String offset,
+            @RequestParam(value = "limit", required = false) Integer limit){
+        if(groupId==null||groupId.isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        GroupMemberInfos resp = this.grpService.qryGrpMembers(groupId, offset, limit);
+        return Result.success(resp);
     }
 
     @PostMapping("/members/check")
-    public Result checkGroupMembers(){
-        return new Result(0, "");
+    public Result checkGroupMembers(@RequestBody CheckGroupMembersReq req){
+        if(req==null||req.getGroupId()==null||req.getGroupId().isEmpty()
+                || req.getMemberIds()==null||req.getMemberIds().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        CheckGroupMembersResp resp = this.grpService.checkGroupMembers(req);
+        return Result.success(resp);
+    }
+
+    @PostMapping("/members/search")
+    public Result searchGroupMembers(@RequestBody SearchGroupMembersReq req){
+        if(req==null||req.getGroupId()==null||req.getGroupId().isEmpty()
+                || req.getKey()==null||req.getKey().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        GroupMemberInfos resp = this.grpService.searchGroupMembers(req);
+        return Result.success(resp);
     }
 
     @PostMapping("/setgrpannouncement")
-    public Result setGrpAnnouncement(){
-        return new Result(0, "");
+    public Result setGrpAnnouncement(@RequestBody GroupAnnouncement announcement){
+        if(announcement==null||announcement.getGroupId()==null||announcement.getGroupId().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        this.grpService.setGrpAnnouncement(announcement);
+        return Result.success(null);
     }
 
     @GetMapping("/getgrpannouncement")
-    public Result getGrpAnnouncement(){
-        return new Result(0, "");
+    public Result getGrpAnnouncement(@RequestParam("group_id") String groupId){
+        if(groupId==null||groupId.isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        return Result.success(this.grpService.getGrpAnnouncement(groupId));
     }
 
     @PostMapping("/setdisplayname")
-    public Result setGrpDisplayName(){
-        return new Result(0, "");
+    public Result setGrpDisplayName(@RequestBody SetGroupDisplayNameReq req){
+        if(req==null||req.getGroupId()==null||req.getGroupId().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        this.grpService.setGrpDisplayName(req);
+        return Result.success(null);
     }
 
     @GetMapping("/mygroups")
-    public Result qryMyGroups(){
-        return new Result(0, "");
+    public Result qryMyGroups(@RequestParam(value = "offset", required = false) String offset,
+            @RequestParam(value = "count", required = false) Integer count){
+        Groups resp = this.grpService.qryMyGroups(offset, count);
+        return Result.success(resp);
+    }
+
+    @PostMapping("/mygroups/search")
+    public Result searchMyGroups(@RequestBody SearchReq req){
+        if(req==null||req.getKeyword()==null||req.getKeyword().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        if(req.getLimit()<=0){
+            req.setLimit(100);
+        }
+        return Result.success(this.grpService.searchMyGroups(req));
     }
 
     @GetMapping("/myapplications")
-    public Result qryMyGrpApplications(){
-        return new Result(0, "");
+    public Result qryMyGrpApplications(@RequestParam("start") long start,
+            @RequestParam(value = "count", required = false) Integer count,
+            @RequestParam(value = "order", required = false) Integer order){
+        int safeOrder = normalizeOrder(order);
+        long safeStart = normalizeStart(start, safeOrder);
+        int safeCount = normalizeCount(count);
+        return Result.success(this.grpService.qryMyGrpApplications(safeStart, safeCount, safeOrder));
     }
 
     @GetMapping("/mypendinginvitations")
-    public Result qryMyPendingGrpInvitations(){
-        return new Result(0, "");
+    public Result qryMyPendingGrpInvitations(@RequestParam("start") long start,
+            @RequestParam(value = "count", required = false) Integer count,
+            @RequestParam(value = "order", required = false) Integer order){
+        int safeOrder = normalizeOrder(order);
+        long safeStart = normalizeStart(start, safeOrder);
+        int safeCount = normalizeCount(count);
+        return Result.success(this.grpService.qryMyPendingGrpInvitations(safeStart, safeCount, safeOrder));
     }
 
     @GetMapping("/grpinvitations")
-    public Result qryGrpInvitations(){
-        return new Result(0, "");
+    public Result qryGrpInvitations(@RequestParam("group_id") String groupId,
+            @RequestParam("start") long start,
+            @RequestParam(value = "count", required = false) Integer count,
+            @RequestParam(value = "order", required = false) Integer order){
+        if(groupId==null||groupId.isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        int safeOrder = normalizeOrder(order);
+        long safeStart = normalizeStart(start, safeOrder);
+        int safeCount = normalizeCount(count);
+        return Result.success(this.grpService.qryGrpInvitations(groupId, safeStart, safeCount, safeOrder));
     }
-    
+
     @GetMapping("/grppendingapplications")
-    public Result qryGrpPendingApplications(){
-        return new Result(0, "");
+    public Result qryGrpPendingApplications(@RequestParam("group_id") String groupId,
+            @RequestParam("start") long start,
+            @RequestParam(value = "count", required = false) Integer count,
+            @RequestParam(value = "order", required = false) Integer order){
+        if(groupId==null||groupId.isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        int safeOrder = normalizeOrder(order);
+        long safeStart = normalizeStart(start, safeOrder);
+        int safeCount = normalizeCount(count);
+        return Result.success(this.grpService.qryGrpPendingApplications(groupId, safeStart, safeCount, safeOrder));
+    }
+
+    @GetMapping("/grpapplications")
+    public Result qryGrpApplications(@RequestParam("group_id") String groupId,
+            @RequestParam("start") long start,
+            @RequestParam(value = "count", required = false) Integer count,
+            @RequestParam(value = "order", required = false) Integer order){
+        if(groupId==null||groupId.isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        int safeOrder = normalizeOrder(order);
+        long safeStart = normalizeStart(start, safeOrder);
+        int safeCount = normalizeCount(count);
+        return Result.success(this.grpService.qryGrpApplications(groupId, safeStart, safeCount, safeOrder));
+    }
+
+    @PostMapping("/grpapplications/confirm")
+    public Result groupConfirm(@RequestBody GroupConfirm confirm){
+        if(confirm==null||confirm.getApplicationId()==null||confirm.getApplicationId().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        this.grpService.groupConfirm(confirm);
+        return Result.success(null);
+    }
+
+    private int normalizeCount(Integer count){
+        if(count==null){
+            return 20;
+        }
+        if(count<=0||count>50){
+            return 20;
+        }
+        return count;
+    }
+
+    private int normalizeOrder(Integer order){
+        if(order==null){
+            return 0;
+        }
+        return (order>1||order<0)?0:order;
+    }
+
+    private long normalizeStart(long start, int order){
+        if(order==0 && start<=0){
+            return System.currentTimeMillis();
+        }
+        return start;
     }
 }

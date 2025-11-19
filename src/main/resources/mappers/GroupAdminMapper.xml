@@ -18,6 +18,10 @@
         SELECT * FROM groupadmins WHERE app_key = #{appkey} AND group_id = #{groupId}
     </select>
 
+    <select id="checkAdmin" resultType="java.lang.Boolean">
+        SELECT COUNT(1) > 0 FROM groupadmins WHERE app_key=#{appkey} AND group_id=#{groupId} AND admin_id=#{adminId}
+    </select>
+
     <delete id="batchDel">
         DELETE FROM groupadmins WHERE app_key=#{appkey} AND group_id=#{groupId} AND admin_id IN 
         <foreach collection="adminIds" item="adminId" open="(" separator="," close=")">

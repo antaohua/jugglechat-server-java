@@ -4,6 +4,9 @@ import lombok.Data;
 
 @Data
 public class QrCodeRecord {
+    public static final int STATUS_DEFAULT = 0;
+    public static final int STATUS_OK = 1;
+
     private Long id;
     private String codeId;
     private Integer status;

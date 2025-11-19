@@ -11,9 +11,9 @@
         <result column="app_key" property="appkey" jdbcType="VARCHAR"/>
     </resultMap>
 
-    <insert id="create" parameterType="SmsRecord">
-        INSERT INTO qrcoderecords (app_key,code_id,created_time)
-        VALUES (#{appkey}, #{codeId}, #{createdTime})
+    <insert id="create" parameterType="com.juggle.chat.models.QrCodeRecord">
+        INSERT INTO qrcoderecords (app_key,code_id,status,created_time)
+        VALUES (#{appkey}, #{codeId}, #{status}, #{createdTime})
     </insert>
 
     <select id="findById" resultMap="BaseResultMap">

@@ -12,7 +12,7 @@
         <result column="app_key" property="appkey" jdbcType="VARCHAR"/>
     </resultMap>
 
-    <insert id="upsert" parameterType="GroupAdmin">
+    <insert id="upsert" parameterType="com.juggle.chat.models.FriendRel">
         INSERT IGNORE INTO friendrels (app_key,user_id,friend_id,order_tag) VALUES (#{appkey},#{userId},#{friendId},#{orderTag})
     </insert>
 
@@ -35,12 +35,12 @@
     </select>
 
     <select id="queryFriendRelsWithPage" resultMap="BaseResultMap">
-        SELECT * FROM friendrels WHERE app_key = #{appkey} AND user_id = #{userId} 
-        <if test="order_tag != null">
+        SELECT * FROM friendrels WHERE app_key = #{appkey} AND user_id = #{userId}
+        <if test="orderTag != null and orderTag != ''">
             AND order_tag &gt;= #{orderTag}
         </if>
         ORDER BY order_tag ASC
-        Limit #{size} OFFSET #{page}-1
+        Limit #{size} OFFSET #{offset}
     </select>
 
     <delete id="batchDelete">
@@ -52,7 +52,7 @@
     </delete>
 
     <select id="queryFriendRelsByFriendIds" resultMap="BaseResultMap">
-        SELECT * FROM friendrels WHERE app_key = #{appkey} AND user_id = #{userId} 
+        SELECT * FROM friendrels WHERE app_key = #{appkey} AND user_id = #{userId}
         AND friend_id IN
         <foreach collection="friendIds" item="item" open="(" separator="," close=")">
             #{item}
@@ -60,8 +60,18 @@
     </select>
 
     <update id="updateOrderTag">
-        UPDATE friendrels 
+        UPDATE friendrels
         SET order_tag = #{orderTag}
         WHERE app_key = #{appkey} AND user_id = #{userId} AND friend_id = #{friendId}
     </update>
+
+    <select id="searchFriendsByName" resultType="com.juggle.chat.models.User">
+        SELECT r.id,u.user_id,u.nickname,u.user_portrait,u.user_type,u.pinyin FROM friendrels AS r
+        LEFT JOIN users AS u ON r.app_key=u.app_key AND r.friend_id=u.user_id
+        WHERE r.app_key=#{appkey} AND r.user_id=#{userId} AND r.id &gt; #{startId}
+        <if test="key != null and key != ''">
+            AND u.nickname LIKE CONCAT('%',#{key},'%')
+        </if>
+        ORDER BY r.id ASC LIMIT #{limit}
+    </select>
 </mapper>

@@ -12,4 +12,5 @@ public interface GroupExtMapper {
     GroupExt find(@Param("appkey")String appkey, @Param("groupId")String groupId, @Param("itemKey")String itemKey);
     List<GroupExt> qryExtFields(@Param("appkey")String appkey, @Param("groupId")String groupId);
     int upsert(GroupExt groupExt);
+    int batchUpsert(@Param("exts")List<GroupExt> groupExts);
 }

@@ -15,4 +15,7 @@ public interface GrpApplicationMapper {
     List<GrpApplication> queryMyPendingGrpInvitations(@Param("appkey")String appkey, @Param("recipientId")String recipientId, @Param("startTime")long startTime, @Param("count")long count, @Param("isPositive")Boolean isPositive);
     List<GrpApplication> queryGrpInvitations(@Param("appkey")String appkey, @Param("groupId")String groupId, @Param("startTime")long startTime, @Param("count")long count, @Param("isPositive")Boolean isPositive);
     List<GrpApplication> queryGrpPendingApplications(@Param("appkey")String appkey,@Param("groupId")String groupId, @Param("startTime")long startTime, @Param("count")long count, @Param("isPositive")Boolean isPositive);
+    List<GrpApplication> queryGrpApplications(@Param("appkey")String appkey,@Param("groupId")String groupId, @Param("startTime")long startTime, @Param("count")long count, @Param("isPositive")Boolean isPositive);
+    GrpApplication findById(@Param("appkey")String appkey, @Param("id")Long id);
+    int updateStatus(@Param("id")Long id, @Param("status")Integer status);
 }

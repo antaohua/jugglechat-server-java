@@ -14,7 +14,11 @@ public interface GroupMemberMapper {
     GroupMember find(@Param("appkey")String appkey, @Param("groupId")String groupId,@Param("memberId")String memberId);
     List<GroupMember> findByMemberIds(@Param("appkey")String appkey, @Param("groupId")String groupId, @Param("memberIds")List<String> memberIds);
     List<GroupMember> queryMembers(@Param("appkey")String appkey, @Param("groupId")String groupId, @Param("startId")long startId, @Param("limit")long limit);
+    List<GroupMember> searchMembersByName(@Param("appkey")String appkey, @Param("groupId")String groupId,
+            @Param("key")String key, @Param("startId")long startId, @Param("limit")long limit);
     List<GroupMember> queryGroupsByMemberId(@Param("appkey")String appkey, @Param("memberId")String memberId, @Param("startId")long startId, @Param("limit")long limit);
+    List<GroupMember> searchGroupsByMemberId(@Param("appkey")String appkey, @Param("memberId")String memberId,
+            @Param("keyword")String keyword, @Param("startId")long startId, @Param("limit")long limit);
     int batchDelete(@Param("appkey")String appkey, @Param("groupId")String groupId, @Param("memberIds")List<String> memberIds);
     int deleteByGroupId(@Param("appkey")String appkey, @Param("groupId")String groupId);
     int updateMute(@Param("appkey")String appkey, @Param("groupId")String groupId, @Param("isMute")int isMute, @Param("memberIds")List<String> memberIds, @Param("muteEndAt")long muteEndAt);

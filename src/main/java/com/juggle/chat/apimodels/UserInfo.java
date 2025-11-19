@@ -24,11 +24,20 @@ public class UserInfo {
     @JsonProperty("phone")
     private String phone;
 
+    @JsonProperty("email")
+    private String email;
+
+    @JsonProperty("account")
+    private String account;
+
     @JsonProperty("status")
     private int status;
 
     @JsonProperty("is_friend")
     private boolean isFriend;
+
+    @JsonProperty("is_block")
+    private boolean isBlock;
 
     @JsonProperty("settings")
     private UserSettings settings;

@@ -39,6 +39,26 @@
         SELECT * FROM users WHERE app_key=#{appkey} AND email=#{email}
     </select>
 
+    <select id="findByAccount" resultMap="BaseResultMap">
+        SELECT * FROM users WHERE app_key=#{appkey} AND login_account=#{account}
+    </select>
+
+    <select id="searchByKeyword" resultMap="BaseResultMap">
+        SELECT * FROM users
+        WHERE app_key=#{appkey}
+        AND user_id != #{userId}
+        AND id &gt; #{startId}
+        AND (
+            user_id LIKE CONCAT('%', #{keyword}, '%')
+            OR phone LIKE CONCAT('%', #{keyword}, '%')
+            OR email LIKE CONCAT('%', #{keyword}, '%')
+            OR nickname LIKE CONCAT('%', #{keyword}, '%')
+            OR login_account LIKE CONCAT('%', #{keyword}, '%')
+        )
+        ORDER BY id ASC
+        LIMIT #{limit}
+    </select>
+
     <insert id="create" parameterType="User">
         INSERT INTO users (app_key,user_id,user_type,nickname,user_portrait,pinyin,phone,email,login_account,login_pass)
         VALUES (#{appkey}, #{userId}, #{userType}, #{nickname},#{userPortrait},#{pinyin},#{phone},#{email},#{loginAccount},#{loginPass})
@@ -65,4 +85,20 @@
     <select id="countByTime" resultType="java.lang.Integer">
         SELECT COUNT(*) FROM users WHERE app_key=#{appkey} AND created_time BETWEEN #{start} AND #{end}
     </select>
+
+    <update id="updatePass">
+        UPDATE users SET login_pass=#{loginPass} WHERE app_key=#{appkey} AND user_id=#{userId}
+    </update>
+
+    <update id="updateAccount">
+        UPDATE users SET login_account=#{account} WHERE app_key=#{appkey} AND user_id=#{userId}
+    </update>
+
+    <update id="updateEmail">
+        UPDATE users SET email=#{email} WHERE app_key=#{appkey} AND user_id=#{userId}
+    </update>
+
+    <update id="updatePhone">
+        UPDATE users SET phone=#{phone} WHERE app_key=#{appkey} AND user_id=#{userId}
+    </update>
 </mapper>

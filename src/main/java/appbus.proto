@@ -18,3 +18,9 @@ message AuthTokenValue{
     string deviceId = 2;
     int64 tokenTime = 3;
 }
+
+message FeedbackContent{
+    string text = 1;
+    repeated string images = 2;
+    repeated string videos = 3;
+}
