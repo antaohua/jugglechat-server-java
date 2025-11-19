@@ -1,5 +1,8 @@
 package com.juggle.chat.file;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
 import io.minio.GetPresignedObjectUrlArgs;
@@ -26,7 +29,7 @@ public class MinioStorage {
 
     public String preSignedPutUrl(String objectKey)
             throws ErrorResponseException, InsufficientDataException, InternalException, InvalidResponseException,
-            ServerException, XmlParserException {
+            ServerException, XmlParserException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         GetPresignedObjectUrlArgs args = GetPresignedObjectUrlArgs.builder()
                 .bucket(bucket)
                 .object(objectKey)
@@ -35,4 +38,5 @@ public class MinioStorage {
                 .build();
         return client.getPresignedObjectUrl(args);
     }
+
 }

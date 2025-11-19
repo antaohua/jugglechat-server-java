@@ -1,10 +1,15 @@
 package com.juggle.chat.models;
 
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.sql.Date;
 
-import lombok.Data;
 
 @Data
+@Getter
+@Setter
 public class AppInfo {
     private Long id;
     private String appName;

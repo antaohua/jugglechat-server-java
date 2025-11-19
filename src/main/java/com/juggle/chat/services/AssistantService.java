@@ -3,7 +3,7 @@ package com.juggle.chat.services;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -50,11 +50,11 @@ public class AssistantService {
         String appkey = RequestContext.getAppkeyFromCtx();
         String userId = RequestContext.getCurrentUserIdFromCtx();
         long id = decode(req.getPromptId());
-        Prompt dbPrompt = promptMapper.findPrompt(appkey, id, userId);
+        Prompt dbPrompt = promptMapper.findPrompt(appkey, userId, id);
         if (dbPrompt == null) {
             throw new JimException(JimErrorCode.ErrorCode_APP_ASSISTANT_PROMPT_DBERROR);
         }
-        promptMapper.updatePrompt(appkey, id, userId, req.getPrompts());
+        promptMapper.updatePrompt(appkey, userId, id, req.getPrompts());
         dbPrompt.setPrompts(req.getPrompts());
         return toApi(dbPrompt);
     }
@@ -66,7 +66,7 @@ public class AssistantService {
         String appkey = RequestContext.getAppkeyFromCtx();
         String userId = RequestContext.getCurrentUserIdFromCtx();
         long id = decode(req.getPromptId());
-        promptMapper.deletePrompt(appkey, id, userId);
+        promptMapper.deletePrompt(appkey, userId, id);
     }
 
     public void batchDelete(AssistantPromptIds ids) {

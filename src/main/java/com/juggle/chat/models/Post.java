@@ -9,9 +9,9 @@ public class Post {
     private Long id;
     private String postId;
     private String title;
-    private Byte []content;
+    private byte []content;
     private String contentBrief;
-    private Byte []postExset;
+    private byte []postExset;
     private Integer isDelete;
     private String userId;
     private Long createdTime;

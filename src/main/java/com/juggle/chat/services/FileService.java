@@ -1,10 +1,13 @@
 package com.juggle.chat.services;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Optional;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -110,8 +113,8 @@ public class FileService {
             preSign.setObjKey(objectKey);
             resp.setPreSignResp(preSign);
             return resp;
-        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidResponseException
-                | ServerException | XmlParserException e) {
+        } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidResponseException |
+                 ServerException | XmlParserException | IOException | NoSuchAlgorithmException | InvalidKeyException e) {
             throw new JimException(JimErrorCode.ErrorCode_APP_FILE_SIGNERR, e.getMessage());
         }
     }

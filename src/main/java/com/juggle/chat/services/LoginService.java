@@ -4,7 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import java.util.regex.Pattern;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
