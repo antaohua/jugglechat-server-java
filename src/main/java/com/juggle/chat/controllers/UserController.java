@@ -18,14 +18,22 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import com.juggle.chat.apimodels.BlockUsersReq;
+import com.juggle.chat.apimodels.BindEmailReq;
+import com.juggle.chat.apimodels.BindPhoneReq;
+import com.juggle.chat.apimodels.BlockUsers;
 import com.juggle.chat.apimodels.QrCode;
 import com.juggle.chat.apimodels.Result;
+import com.juggle.chat.apimodels.SetUserAccountReq;
+import com.juggle.chat.apimodels.UpdUserPassReq;
+import com.juggle.chat.apimodels.UserIds;
 import com.juggle.chat.apimodels.UserInfo;
 import com.juggle.chat.apimodels.UserSettings;
 import com.juggle.chat.exceptions.JimException;
 import com.juggle.chat.interceptors.RequestContext;
 import com.juggle.chat.services.UserService;
 import com.juggle.chat.utils.CommonUtil;
+import com.juggle.chat.exceptions.JimErrorCode;
 
 @RestController
 @RequestMapping("/jim/users")
@@ -36,6 +44,11 @@ public class UserController {
     @PostMapping("/update")
     public Result updateUser(@RequestBody UserInfo user)throws JimException{
         userService.updateUser(user);
+        return new Result(0, "");
+    }
+
+    @PostMapping("/updpass")
+    public Result updatePass(@RequestBody UpdUserPassReq req)throws JimException{
         return new Result(0, "");
     }
 
@@ -76,5 +89,60 @@ public class UserController {
             e.printStackTrace();
         }
         return Result.success(ret);
+    }
+
+    @PostMapping("/setaccount")
+    public Result setLoginAccount(@RequestBody SetUserAccountReq req){
+        return new Result(0, "");
+    }
+
+    @PostMapping("/bindemail/send")
+    public Result bindEmailSend(@RequestBody BindEmailReq req){
+        return new Result(0, "");
+    }
+
+    @PostMapping("/bindemail")
+    public Result bindEmail(@RequestBody BindEmailReq req){
+        return new Result(0, "");
+    }
+
+    @PostMapping("/bindphone/send")
+    public Result bindPhoneSend(@RequestBody BindPhoneReq req){
+        return new Result(0, "");
+    }
+
+    @PostMapping("/bindphone")
+    public Result bindPhone(@RequestBody BindPhoneReq req){
+        return new Result(0, "");
+    }
+
+    @PostMapping("/onlinestatus")
+    public Result qryUsersOnlineStatus(@RequestBody UserIds req){
+        return new Result(0, "");
+    }
+
+    @PostMapping("/blockusers/add")
+    public Result blockUsers(@RequestBody BlockUsersReq req){
+        if(req==null||req.getBlockUserIds()==null||req.getBlockUserIds().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        this.userService.blockUsers(req);
+        return Result.success(null);
+    }
+
+    @PostMapping("/blockusers/del")
+    public Result unBlockUsers(@RequestBody BlockUsersReq req){
+        if(req==null||req.getBlockUserIds()==null||req.getBlockUserIds().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        this.userService.unBlockUsers(req);
+        return Result.success(null);
+    }
+
+    @GetMapping("/blockusers/list")
+    public Result qryBlockUsers(@RequestParam(value = "offset", required = false) String offset,
+            @RequestParam(value = "count", required = false) Integer count){
+        BlockUsers users = this.userService.qryBlockUsers(offset, count);
+        return Result.success(users);
     }
 }
