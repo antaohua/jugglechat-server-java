@@ -10,11 +10,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @SpringBootApplication
 @MapperScan("com.juggle.chat.mappers")
-public class App 
-{
-    public static void main( String[] args )
-    {
-        System.out.println( "Hello World!" );
-        SpringApplication.run(App.class,args);
+public class App {
+    public static void main(String[] args) {
+        SpringApplication.run(App.class, args);
     }
 }
