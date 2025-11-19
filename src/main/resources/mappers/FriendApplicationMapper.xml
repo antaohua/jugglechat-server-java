@@ -14,6 +14,7 @@
     <insert id="upsert" parameterType="FriendApplication">
         INSERT INTO friendapplications (app_key,recipient_id, sponsor_id, apply_time, status)
         VALUES (#{appkey}, #{recipientId}, #{sponsorId}, #{applyTime}, #{status})
+        ON DUPLICATE KEY UPDATE apply_time=VALUES(apply_time), status=VALUES(status)
     </insert>
 
     <select id="queryPendingApplications" resultMap="BaseResultMap">

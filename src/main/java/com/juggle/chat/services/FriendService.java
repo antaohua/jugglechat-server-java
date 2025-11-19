@@ -2,16 +2,24 @@ package com.juggle.chat.services;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
-import jakarta.annotation.Resource;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import com.juggle.chat.apimodels.FriendApplicationItem;
 import com.juggle.chat.apimodels.FriendApplications;
 import com.juggle.chat.apimodels.FriendIds;
 import com.juggle.chat.apimodels.UserInfo;
 import com.juggle.chat.apimodels.UserInfos;
+import com.juggle.chat.apimodels.SearchFriendsReq;
 import com.juggle.chat.apimodels.UserSettings;
 import com.juggle.chat.exceptions.JimErrorCode;
 import com.juggle.chat.exceptions.JimException;
@@ -23,6 +31,7 @@ import com.juggle.chat.models.FriendApplication;
 import com.juggle.chat.models.FriendRel;
 import com.juggle.chat.models.User;
 import com.juggle.chat.models.UserExtKeys;
+import com.juggle.chat.utils.N3d;
 
 @Service
 public class FriendService {
@@ -35,14 +44,17 @@ public class FriendService {
     @Resource 
     private UserService userService;
     @Resource 
-    private FriendCheckService friendChaCheckService;
+    private FriendCheckService friendCheckService;
 
     public UserInfos qryFriendsWithPage(int page, int size, String orderTag)throws JimException{
         String appkey = RequestContext.getAppkeyFromCtx();
         String currentUserId = RequestContext.getCurrentUserIdFromCtx();
         UserInfos ret = new UserInfos();
-        List<FriendRel> items = this.friendMapper.queryFriendRelsWithPage(appkey, currentUserId, orderTag, page, size);
-        if(items!=null&&items.size()>0){
+        int safeSize = size <= 0 ? 20 : size;
+        int safePage = page <= 0 ? 1 : page;
+        long offset = (long) (safePage - 1) * safeSize;
+        List<FriendRel> items = this.friendMapper.queryFriendRelsWithPage(appkey, currentUserId, orderTag, offset, safeSize);
+        if(!CollectionUtils.isEmpty(items)){
             HashMap<String,UserInfo> userMap = new HashMap<>();
             List<String> friendIds = new ArrayList<>();
             for (FriendRel item : items) {
@@ -67,107 +79,118 @@ public class FriendService {
         return ret;
     }
 
-    public void addFriends(FriendIds friendIds){
+    public UserInfos searchFriends(SearchFriendsReq req){
         String appkey = RequestContext.getAppkeyFromCtx();
         String currentUserId = RequestContext.getCurrentUserIdFromCtx();
-        for (String friendId : friendIds.getFriendIds()) {
-            List<FriendRel> rels = new ArrayList<>();
-            FriendRel rel = new FriendRel();
-            rel.setAppkey(appkey);
-            rel.setUserId(currentUserId);
-            rel.setFriendId(friendId);
-            rels.add(rel);
-
-            FriendRel rel2 = new FriendRel();
-            rel.setAppkey(appkey);
-            rel.setUserId(friendId);
-            rel.setFriendId(currentUserId);
-            rels.add(rel2);
-            int ok = this.friendMapper.batchUpsert(rels);
-            if(ok>0){
-                //TODO sync to imserver
-                //TODO send notify msg
+        long startId = 0L;
+        if(req.getOffset()!=null&&!req.getOffset().isEmpty()){
+            try {
+                startId = N3d.decode(req.getOffset());
+            } catch (Exception ignored) {
             }
+        }
+        long limit = req.getLimit()<=0?100L:req.getLimit();
+        List<User> users = this.friendMapper.searchFriendsByName(appkey, currentUserId, req.getKey(), startId, limit);
+        UserInfos resp = new UserInfos();
+        if(users!=null){
+            for (User user : users) {
+                UserInfo info = new UserInfo();
+                info.setUserId(user.getUserId());
+                info.setNickname(user.getNickname());
+                info.setAvatar(user.getUserPortrait());
+                if(user.getUserType()!=null){
+                    info.setUserType(user.getUserType());
+                }
+                resp.addUserInf(info);
+                try {
+                    resp.setOffset(N3d.encode(user.getId()));
+                } catch (Exception ignored) {
+                }
+            }
+        }
+        return resp;
+    }
+
+    public void addFriends(FriendIds friendIds)throws JimException{
+        if(friendIds==null||CollectionUtils.isEmpty(friendIds.getFriendIds())){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        String appkey = RequestContext.getAppkeyFromCtx();
+        String currentUserId = RequestContext.getCurrentUserIdFromCtx();
+        List<String> targets = normalizeFriendIds(friendIds.getFriendIds(), currentUserId);
+        if(CollectionUtils.isEmpty(targets)){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        List<User> existing = this.userMapper.findByUserIds(appkey, targets);
+        if(CollectionUtils.isEmpty(existing)){
+            throw new JimException(JimErrorCode.ErrorCode_APP_USER_NOT_EXIST);
+        }
+        Set<String> existIds = existing.stream().map(User::getUserId).collect(Collectors.toSet());
+        for (String target : targets) {
+            if(!existIds.contains(target)){
+                throw new JimException(JimErrorCode.ErrorCode_APP_USER_NOT_EXIST);
+            }
+        }
+        List<FriendRel> rels = new ArrayList<>(targets.size() * 2);
+        for (String friendId : targets) {
+            rels.add(buildFriendRel(appkey, currentUserId, friendId));
+            rels.add(buildFriendRel(appkey, friendId, currentUserId));
+        }
+        if(!rels.isEmpty()){
+            this.friendMapper.batchUpsert(rels);
+            //TODO sync to imserver
+            //TODO send notify msg
         }
     }
 
     public void applyFriend(String friendId){
+        if(!StringUtils.hasText(friendId)){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
         String appkey = RequestContext.getAppkeyFromCtx();
         String currentUserId = RequestContext.getCurrentUserIdFromCtx();
-        if(this.friendChaCheckService.checkFriend(currentUserId, friendId)){
-            FriendRel rel = new FriendRel();
-            rel.setAppkey(appkey);
-            rel.setUserId(currentUserId);
-            rel.setFriendId(friendId);
-            this.friendMapper.upsert(rel);
-            //TODO sync to im
-            
-            FriendApplication app = new FriendApplication();
-            app.setRecipientId(friendId);
-            app.setSponsorId(currentUserId);
-            app.setApplyTime(System.currentTimeMillis());
-            app.setStatus(FriendApplication.FriendApplicationStatus_Agree);
-            app.setAppkey(appkey);
-            this.friendApplicationMapper.upsert(app);
+        if(currentUserId.equals(friendId)){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        if(this.userMapper.findByUserId(appkey, friendId)==null){
+            throw new JimException(JimErrorCode.ErrorCode_APP_USER_NOT_EXIST);
+        }
+        long now = System.currentTimeMillis();
+        if(this.friendCheckService.checkFriend(friendId, currentUserId)){
+            saveBidirectionalFriendRel(appkey, currentUserId, friendId);
+            saveFriendApplication(appkey, currentUserId, friendId,
+                    FriendApplication.FriendApplicationStatus_Agree, now);
+            //TODO sync to imserver
+            //TODO send notify msg
             return;
         }
         UserSettings settings = this.userService.getUserSettings(friendId);
-        if(settings.getFriendVerifyType() == UserExtKeys.FriendVerifyType_Decline){
+        int verifyType = settings==null?UserExtKeys.FriendVerifyType_NoNeed:settings.getFriendVerifyType();
+        if(verifyType == UserExtKeys.FriendVerifyType_Decline){
             throw new JimException(JimErrorCode.ErrorCode_APP_FRIEND_APPLY_DECLINE);
-        }else if(settings.getFriendVerifyType() == UserExtKeys.FriendVerifyType_Need){
-            FriendApplication app = new FriendApplication();
-            app.setRecipientId(friendId);
-            app.setSponsorId(currentUserId);
-            app.setApplyTime(System.currentTimeMillis());
-            app.setStatus(FriendApplication.FriendApplicationStatus_Apply);
-            app.setAppkey(appkey);
-            int ok = this.friendApplicationMapper.upsert(app);
-            if(ok>0){
-                //TODO send notify msg
-            }
-        }else if(settings.getFriendVerifyType() == UserExtKeys.FriendVerifyType_NoNeed){
-            List<FriendRel> rels = new ArrayList<>();
-            FriendRel rel = new FriendRel();
-            rel.setAppkey(appkey);
-            rel.setUserId(currentUserId);
-            rel.setFriendId(friendId);
-            rels.add(rel);
-
-            FriendRel rel2 = new FriendRel();
-            rel.setAppkey(appkey);
-            rel.setUserId(friendId);
-            rel.setFriendId(currentUserId);
-            rels.add(rel2);
-            int ok = this.friendMapper.batchUpsert(rels);
-            if(ok>0){
-                //TODO sync to imserver
-                //TODO send notify msg
-            }
         }
+        if(verifyType == UserExtKeys.FriendVerifyType_Need){
+            saveFriendApplication(appkey, currentUserId, friendId,
+                    FriendApplication.FriendApplicationStatus_Apply, now);
+            //TODO send notify msg
+            return;
+        }
+        saveBidirectionalFriendRel(appkey, currentUserId, friendId);
+        saveFriendApplication(appkey, currentUserId, friendId,
+                FriendApplication.FriendApplicationStatus_Agree, now);
+        //TODO sync to imserver
+        //TODO send notify msg
     }
 
     public void confirmFriend(String sponsorId, boolean isAgree)throws JimException{
         String appkey = RequestContext.getAppkeyFromCtx();
         String currentUserId = RequestContext.getCurrentUserIdFromCtx();
         if(isAgree){
-            this.friendApplicationMapper.updateStatus(appkey, sponsorId, currentUserId, FriendApplication.FriendApplicationStatus_Agree);
-            List<FriendRel> rels = new ArrayList<>();
-            FriendRel rel = new FriendRel();
-            rel.setAppkey(appkey);
-            rel.setUserId(currentUserId);
-            rel.setFriendId(sponsorId);
-            rels.add(rel);
-
-            FriendRel rel2 = new FriendRel();
-            rel.setAppkey(appkey);
-            rel.setUserId(sponsorId);
-            rel.setFriendId(currentUserId);
-            rels.add(rel2);
-            int ok = this.friendMapper.batchUpsert(rels);
-            if(ok>0){
-                //TODO sync to imserver
-                //TODO send notify msg
-            }
+            saveBidirectionalFriendRel(appkey, currentUserId, sponsorId);
+            this.friendApplicationMapper.updateStatus(appkey, sponsorId, currentUserId,
+                    FriendApplication.FriendApplicationStatus_Agree);
+            //TODO sync to imserver
+            //TODO send notify msg
         }else{
             this.friendApplicationMapper.updateStatus(appkey, sponsorId, currentUserId, FriendApplication.FriendApplicationStatus_Decline);
         }
@@ -176,7 +199,11 @@ public class FriendService {
     public void delFriends(List<String> friendIds)throws JimException{
         String appkey = RequestContext.getAppkeyFromCtx();
         String currentUserId = RequestContext.getCurrentUserIdFromCtx();
-        int ok = this.friendMapper.batchDelete(appkey, currentUserId, friendIds);
+        List<String> targets = normalizeFriendIds(friendIds, currentUserId);
+        if(CollectionUtils.isEmpty(targets)){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        int ok = this.friendMapper.batchDelete(appkey, currentUserId, targets);
         if(ok>0){
             //TODO sync to imserver
         }
@@ -237,5 +264,44 @@ public class FriendService {
             }
         }
         return ret;
+    }
+
+    private List<String> normalizeFriendIds(List<String> rawIds, String currentUserId)throws JimException{
+        if(CollectionUtils.isEmpty(rawIds)){
+            return List.of();
+        }
+        Set<String> normalized = new LinkedHashSet<>();
+        for (String friendId : rawIds) {
+            if(!StringUtils.hasText(friendId) || friendId.equals(currentUserId)){
+                throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+            }
+            normalized.add(friendId);
+        }
+        return new ArrayList<>(normalized);
+    }
+
+    private FriendRel buildFriendRel(String appkey, String userId, String friendId){
+        FriendRel rel = new FriendRel();
+        rel.setAppkey(appkey);
+        rel.setUserId(userId);
+        rel.setFriendId(friendId);
+        return rel;
+    }
+
+    private void saveBidirectionalFriendRel(String appkey, String userId, String friendId){
+        List<FriendRel> rels = new ArrayList<>(2);
+        rels.add(buildFriendRel(appkey, userId, friendId));
+        rels.add(buildFriendRel(appkey, friendId, userId));
+        this.friendMapper.batchUpsert(rels);
+    }
+
+    private void saveFriendApplication(String appkey, String sponsorId, String recipientId, int status, long applyTime){
+        FriendApplication app = new FriendApplication();
+        app.setAppkey(appkey);
+        app.setSponsorId(sponsorId);
+        app.setRecipientId(recipientId);
+        app.setStatus(status);
+        app.setApplyTime(applyTime);
+        this.friendApplicationMapper.upsert(app);
     }
 }

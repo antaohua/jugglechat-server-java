@@ -8,6 +8,7 @@ import lombok.Data;
 public class SmsRecord {
     private Long id;
     private String phone;
+    private String email;
     private String code;
     private Timestamp createdTime;
     private String appkey;

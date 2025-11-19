@@ -2,7 +2,7 @@ package com.juggle.chat.controllers;
 
 import java.util.List;
 
-import jakarta.annotation.Resource;
+import javax.annotation.Resource;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,7 +46,11 @@ public class FriendController {
 
     @PostMapping("/search")
     public Result searchFriends(@RequestBody SearchFriendsReq req){
-        return new Result(0, "");
+        if(req==null||req.getKey()==null||req.getKey().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        UserInfos resp = this.friendService.searchFriends(req);
+        return Result.success(resp);
     }
 
     @PostMapping("/apply")

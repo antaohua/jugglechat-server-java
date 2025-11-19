@@ -5,14 +5,15 @@
     <resultMap id="BaseResultMap" type="com.juggle.chat.models.SmsRecord">
         <id column="id" property="id" jdbcType="INTEGER"/>
         <result column="phone" property="phone" jdbcType="VARCHAR"/>
+        <result column="email" property="email" jdbcType="VARCHAR"/>
         <result column="code" property="code" jdbcType="VARCHAR"/>
         <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
         <result column="app_key" property="appkey" jdbcType="VARCHAR"/>
     </resultMap>
 
-    <insert id="create" parameterType="SmsRecord">
-        INSERT INTO smsrecords (app_key,phone,code)
-        VALUES (#{appkey}, #{phone}, #{code})
+    <insert id="create" parameterType="com.juggle.chat.models.SmsRecord">
+        INSERT INTO smsrecords (app_key,phone,email,code,created_time)
+        VALUES (#{appkey}, #{phone}, #{email}, #{code}, #{createdTime})
     </insert>
 
     <select id="findByPhoneCode" resultMap="BaseResultMap">
@@ -20,10 +21,20 @@
     </select>
 
     <select id="findByPhone" resultMap="BaseResultMap">
-        SELECT * FROM smsrecords WHERE app_key=#{appkey} AND phone=#{phone} AND 
-        <![CDATA[
-            created_time > #{start}
-        ]]>
-        limit #{limit}
+        SELECT * FROM smsrecords WHERE app_key=#{appkey} AND phone=#{phone}
+        AND created_time > #{start}
+        ORDER BY created_time DESC
+        LIMIT 1
+    </select>
+
+    <select id="findByEmailCode" resultMap="BaseResultMap">
+        SELECT * FROM smsrecords WHERE app_key=#{appkey} AND email=#{email} AND code=#{code}
+    </select>
+
+    <select id="findByEmail" resultMap="BaseResultMap">
+        SELECT * FROM smsrecords WHERE app_key=#{appkey} AND email=#{email}
+        AND created_time > #{start}
+        ORDER BY created_time DESC
+        LIMIT 1
     </select>
 </mapper>

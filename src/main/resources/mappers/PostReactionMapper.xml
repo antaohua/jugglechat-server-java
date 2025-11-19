@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.juggle.chat.mappers.PostReactionMapper">
+    <resultMap id="BaseResultMap" type="com.juggle.chat.models.PostReaction">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="bus_id" property="busId" jdbcType="VARCHAR"/>
+        <result column="bus_type" property="busType" jdbcType="TINYINT"/>
+        <result column="item_key" property="itemKey" jdbcType="VARCHAR"/>
+        <result column="item_value" property="itemValue" jdbcType="VARCHAR"/>
+        <result column="created_time" property="createdTime" jdbcType="BIGINT"/>
+        <result column="user_id" property="userId" jdbcType="VARCHAR"/>
+        <result column="app_key" property="appkey" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <insert id="upsert" parameterType="com.juggle.chat.models.PostReaction">
+        INSERT INTO postreactions (app_key,bus_id,bus_type,item_key,item_value,user_id,created_time)
+        VALUES (#{appkey},#{busId},#{busType},#{itemKey},#{itemValue},#{userId},#{createdTime})
+        ON DUPLICATE KEY UPDATE item_value=VALUES(item_value),created_time=VALUES(created_time)
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM postreactions
+        WHERE app_key=#{appkey} AND bus_id=#{busId} AND bus_type=#{busType} AND item_key=#{key} AND user_id=#{userId}
+    </delete>
+
+    <select id="qryReactions" resultMap="BaseResultMap">
+        SELECT * FROM postreactions
+        WHERE app_key=#{appkey} AND bus_id=#{busId} AND bus_type=#{busType}
+        ORDER BY id DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

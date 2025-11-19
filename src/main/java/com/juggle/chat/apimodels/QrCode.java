@@ -6,6 +6,9 @@ import lombok.Data;
 
 @Data
 public class QrCode {
+    @JsonProperty("id")
+    private String id;
+
     @JsonProperty("qr_code")
     private String qrCode;
 }

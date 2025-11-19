@@ -16,4 +16,7 @@ public class GroupMemberInfo {
     private int memberType;
     @JsonProperty("role")
     private int role;
+
+    @JsonProperty("is_mute")
+    private Integer isMute;
 }

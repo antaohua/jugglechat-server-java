@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.juggle.chat.mappers.PostCommentFeedMapper">
+    <insert id="insert" parameterType="com.juggle.chat.models.PostCommentFeed">
+        INSERT INTO postcommentfeeds (app_key,user_id,comment_id,post_id,feed_time)
+        VALUES (#{appkey},#{userId},#{commentId},#{postId},#{feedTime})
+    </insert>
+
+    <insert id="batchInsert">
+        INSERT IGNORE INTO postcommentfeeds (app_key,user_id,comment_id,post_id,feed_time)
+        VALUES
+        <foreach collection="feeds" item="feed" separator=",">
+            (#{feed.appkey},#{feed.userId},#{feed.commentId},#{feed.postId},#{feed.feedTime})
+        </foreach>
+    </insert>
+
+    <select id="qryPostComments" resultMap="com.juggle.chat.mappers.PostCommentMapper.BaseResultMap">
+        SELECT c.* FROM postcommentfeeds f
+        LEFT JOIN postcomments c ON c.app_key=f.app_key AND c.comment_id=f.comment_id
+        WHERE f.app_key=#{appkey} AND f.user_id=#{userId} AND f.post_id=#{postId}
+        <choose>
+            <when test="isPositive">
+                AND f.feed_time &gt; #{startTime}
+                ORDER BY f.feed_time ASC
+            </when>
+            <otherwise>
+                AND f.feed_time &lt; #{startTime}
+                ORDER BY f.feed_time DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit}
+    </select>
+</mapper>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.juggle.chat.mappers.PostFeedMapper">
+    <insert id="insert" parameterType="com.juggle.chat.models.PostFeed">
+        INSERT INTO postfeeds (app_key,user_id,post_id,feed_time)
+        VALUES (#{appkey},#{userId},#{postId},#{feedTime})
+    </insert>
+
+    <insert id="batchInsert">
+        INSERT IGNORE INTO postfeeds (app_key,user_id,post_id,feed_time)
+        VALUES
+        <foreach collection="feeds" item="feed" separator=",">
+            (#{feed.appkey},#{feed.userId},#{feed.postId},#{feed.feedTime})
+        </foreach>
+    </insert>
+
+    <select id="qryPosts" resultMap="com.juggle.chat.mappers.PostMapper.BaseResultMap">
+        SELECT p.* FROM postfeeds f
+        LEFT JOIN posts p ON p.app_key=f.app_key AND p.post_id=f.post_id
+        WHERE f.app_key=#{appkey} AND f.user_id=#{userId}
+        <choose>
+            <when test="isPositive">
+                AND f.feed_time &gt; #{startTime}
+                ORDER BY f.feed_time ASC
+            </when>
+            <otherwise>
+                AND f.feed_time &lt; #{startTime}
+                ORDER BY f.feed_time DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit}
+    </select>
+</mapper>

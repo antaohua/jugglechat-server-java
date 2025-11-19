@@ -1,6 +1,6 @@
 package com.juggle.chat.controllers;
 
-import jakarta.annotation.Resource;
+import javax.annotation.Resource;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -8,13 +8,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.juggle.chat.apimodels.EmailLoginReq;
 import com.juggle.chat.apimodels.LoginReq;
 import com.juggle.chat.apimodels.LoginUserResp;
+import com.juggle.chat.apimodels.QrCode;
 import com.juggle.chat.apimodels.QrCodeReq;
-import com.juggle.chat.apimodels.Result;
 import com.juggle.chat.apimodels.RegisterReq;
+import com.juggle.chat.apimodels.Result;
 import com.juggle.chat.apimodels.SmsLoginReq;
-import com.juggle.chat.apimodels.EmailLoginReq;
 import com.juggle.chat.exceptions.JimErrorCode;
 import com.juggle.chat.exceptions.JimException;
 import com.juggle.chat.services.LoginService;
@@ -28,27 +29,32 @@ public class LoginController {
 
     @PostMapping("/login")
     public Result login(@RequestBody LoginReq req) throws JimException {
-        return new Result(0, "");
+        LoginUserResp resp = loginService.login(req);
+        return Result.success(resp);
     }
 
     @PostMapping("/register")
     public Result register(@RequestBody RegisterReq req) {
-        return new Result(0, "");
+        loginService.register(req);
+        return Result.success(null);
     }
 
     @GetMapping("/login/qrcode")
     public Result generateQrCode() {
-        return new Result(0, "");
+        QrCode qrCode = loginService.generateQrCode();
+        return Result.success(qrCode);
     }
 
     @PostMapping("/login/qrcode/check")
     public Result checkQrCode(@RequestBody QrCodeReq req) {
-        return new Result(0, "");
+        LoginUserResp resp = loginService.checkQrCode(req);
+        return Result.success(resp);
     }
 
     @PostMapping("/sms/send")
     public Result smsSend(@RequestBody SmsLoginReq req) {
-        return new Result(0, "");
+        loginService.smsSend(req);
+        return Result.success(null);
     }
 
     @PostMapping(value = {"/sms/login","/sms_login"})
@@ -62,16 +68,19 @@ public class LoginController {
 
     @PostMapping("/email/send")
     public Result emailSend(@RequestBody EmailLoginReq req) {
-        return new Result(0, "");
+        loginService.emailSend(req);
+        return Result.success(null);
     }
 
     @PostMapping("/email/login")
     public Result emailLogin(@RequestBody EmailLoginReq req) {
-        return new Result(0, "");
+        LoginUserResp resp = loginService.emailLogin(req);
+        return Result.success(resp);
     }
 
     @PostMapping("/login/qrcode/confirm")
     public Result confirmQrCode(@RequestBody QrCodeReq req) {
-        return new Result(0, "");
+        loginService.confirmQrCode(req);
+        return Result.success(null);
     }
 }

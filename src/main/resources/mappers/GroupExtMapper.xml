@@ -26,4 +26,13 @@
         (#{appkey}, #{groupId}, #{itemKey}, #{itemValue}, #{itemType})
         ON DUPLICATE KEY UPDATE item_value=VALUES(item_value)
     </insert>
+
+    <insert id="batchUpsert">
+        INSERT INTO groupinfoexts(app_key,group_id,item_key,item_value,item_type)
+        VALUES
+        <foreach collection="exts" item="ext" separator=",">
+            (#{ext.appkey}, #{ext.groupId}, #{ext.itemKey}, #{ext.itemValue}, #{ext.itemType})
+        </foreach>
+        ON DUPLICATE KEY UPDATE item_value=VALUES(item_value)
+    </insert>
 </mapper>

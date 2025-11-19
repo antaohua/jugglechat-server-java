@@ -67,7 +67,7 @@
     </select>
 
     <select id="queryGrpPendingApplications" resultMap="BaseResultMap">
-        SELECT * FROM grpapplications WHERE app_key=#{appkey} AND apply_type=1 AND group_id=#{groupId} AND 
+        SELECT * FROM grpapplications WHERE app_key=#{appkey} AND apply_type=1 AND group_id=#{groupId} AND
         <if test="isPositive">
             apply_time &gt; #{startTime}
             ORDER BY apply_time ASC
@@ -78,4 +78,25 @@
         </if>
         LIMIT #{count}
     </select>
+
+    <select id="queryGrpApplications" resultMap="BaseResultMap">
+        SELECT * FROM grpapplications WHERE app_key=#{appkey} AND group_id=#{groupId} AND
+        <if test="isPositive">
+            apply_time &gt; #{startTime}
+            ORDER BY apply_time ASC
+        </if>
+        <if test="!isPositive">
+            apply_time &lt; #{startTime}
+            ORDER BY apply_time DESC
+        </if>
+        LIMIT #{count}
+    </select>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM grpapplications WHERE app_key=#{appkey} AND id=#{id}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE grpapplications SET status=#{status} WHERE id=#{id}
+    </update>
 </mapper>

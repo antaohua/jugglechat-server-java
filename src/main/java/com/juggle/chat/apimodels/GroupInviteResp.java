@@ -13,6 +13,9 @@ public class GroupInviteResp {
     public static final int GrpInviteReason_InviteDecline = 2;
     public static final int GrpInviteReason_InviteRepeated = 3;
 
+    @JsonProperty("reason")
+    private Integer reason;
+
     @JsonProperty("results")
     private Map<String,Integer> results;
 }

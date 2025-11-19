@@ -4,6 +4,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.juggle.chat.apimodels.Result;
 
 @RestController
@@ -11,6 +14,8 @@ import com.juggle.chat.apimodels.Result;
 public class SyncController {
     @GetMapping("/syncconfs")
     public Result syncConfs() {
-        return new Result(0, "");
+        Map<String,Object> confs = new HashMap<>();
+        confs.put("version", 1);
+        return Result.success(confs);
     }
 }
