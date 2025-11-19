@@ -3,29 +3,38 @@ package com.juggle.chat.services;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import com.juggle.chat.apimodels.BlockUsers;
+import com.juggle.chat.apimodels.BlockUsersReq;
 import com.juggle.chat.apimodels.UserInfo;
 import com.juggle.chat.apimodels.UserInfos;
 import com.juggle.chat.apimodels.UserSettings;
 import com.juggle.chat.exceptions.JimException;
 import com.juggle.chat.interceptors.RequestContext;
+import com.juggle.chat.mappers.BlockUserMapper;
 import com.juggle.chat.mappers.UserExtMapper;
 import com.juggle.chat.mappers.UserMapper;
+import com.juggle.chat.models.BlockUser;
 import com.juggle.chat.models.User;
 import com.juggle.chat.models.UserExt;
 import com.juggle.chat.models.UserExtKeys;
 import com.juggle.chat.utils.CommonUtil;
+import com.juggle.chat.utils.N3d;
 import com.juggle.im.JuggleIm;
 
 @Service
 public class UserService {
     @Resource
     private UserMapper userMapper;
-    @Resource 
+    @Resource
     private UserExtMapper userExtMapper;
+    @Resource
+    private BlockUserMapper blockUserMapper;
     // @Resource
     // private FriendService friendService;
     @Resource
@@ -118,5 +127,97 @@ public class UserService {
             users.addUserInf(userInfo);
         }
         return users;
+    }
+
+    public void blockUsers(BlockUsersReq req){
+        if(req==null||CollectionUtils.isEmpty(req.getBlockUserIds())){
+            return;
+        }
+        String appkey = RequestContext.getAppkeyFromCtx();
+        String currentUserId = RequestContext.getCurrentUserIdFromCtx();
+        for (String blockUserId : req.getBlockUserIds()) {
+            if(blockUserId==null||blockUserId.isEmpty()||blockUserId.equals(currentUserId)){
+                continue;
+            }
+            BlockUser blockUser = new BlockUser();
+            blockUser.setAppkey(appkey);
+            blockUser.setUserId(currentUserId);
+            blockUser.setBlockUserId(blockUserId);
+            try {
+                this.blockUserMapper.create(blockUser);
+            }catch (DuplicateKeyException ex){
+                // ignore duplicate records
+            }
+        }
+    }
+
+    public void unBlockUsers(BlockUsersReq req){
+        if(req==null||CollectionUtils.isEmpty(req.getBlockUserIds())){
+            return;
+        }
+        this.blockUserMapper.batchDelBlockUsers(RequestContext.getAppkeyFromCtx(),
+                RequestContext.getCurrentUserIdFromCtx(), req.getBlockUserIds());
+    }
+
+    public BlockUsers qryBlockUsers(String offset, Integer count){
+        String appkey = RequestContext.getAppkeyFromCtx();
+        String currentUserId = RequestContext.getCurrentUserIdFromCtx();
+        long limit = 20L;
+        if(count!=null&&count>0){
+            limit = count.longValue();
+        }
+        long startId = decodeOffset(offset);
+        BlockUsers ret = new BlockUsers();
+        List<BlockUser> records = this.blockUserMapper.qryBlockUsers(appkey, currentUserId, limit, startId);
+        if(records!=null){
+            for (BlockUser record : records) {
+                UserInfo user = buildBlockUserInfo(record);
+                ret.addUser(user);
+                String encodedOffset = encodeOffset(record.getId());
+                if(encodedOffset!=null){
+                    ret.setOffset(encodedOffset);
+                }
+            }
+        }
+        return ret;
+    }
+
+    private long decodeOffset(String offset){
+        if(offset==null||offset.isEmpty()){
+            return 0L;
+        }
+        try {
+            return N3d.decode(offset);
+        }catch (Exception ex){
+            try {
+                return Long.parseLong(offset);
+            }catch (NumberFormatException ignored){
+                return 0L;
+            }
+        }
+    }
+
+    private String encodeOffset(Long id){
+        if(id==null||id<=0){
+            return null;
+        }
+        try {
+            return N3d.encode(id);
+        }catch (Exception ex){
+            return String.valueOf(id);
+        }
+    }
+
+    private UserInfo buildBlockUserInfo(BlockUser blockUser){
+        UserInfo user = new UserInfo();
+        user.setUserId(blockUser.getBlockUserId());
+        user.setNickname(blockUser.getNickname());
+        user.setAvatar(blockUser.getUserPortrait());
+        user.setPinyin(blockUser.getPinyin());
+        if(blockUser.getUserType()!=null){
+            user.setUserType(blockUser.getUserType());
+        }
+        user.setBlock(true);
+        return user;
     }
 }

@@ -30,6 +30,9 @@ public class UserInfo {
     @JsonProperty("is_friend")
     private boolean isFriend;
 
+    @JsonProperty("is_block")
+    private boolean isBlock;
+
     @JsonProperty("settings")
     private UserSettings settings;
 }

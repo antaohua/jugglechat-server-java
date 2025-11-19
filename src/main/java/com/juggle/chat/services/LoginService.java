@@ -1,6 +1,6 @@
 package com.juggle.chat.services;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 

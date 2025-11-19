@@ -5,7 +5,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +21,10 @@ import com.google.zxing.common.BitMatrix;
 import com.juggle.chat.apimodels.BlockUsersReq;
 import com.juggle.chat.apimodels.BindEmailReq;
 import com.juggle.chat.apimodels.BindPhoneReq;
+import com.juggle.chat.apimodels.BlockUsers;
+import com.juggle.chat.apimodels.BlockUsersReq;
+import com.juggle.chat.apimodels.BindEmailReq;
+import com.juggle.chat.apimodels.BindPhoneReq;
 import com.juggle.chat.apimodels.QrCode;
 import com.juggle.chat.apimodels.Result;
 import com.juggle.chat.apimodels.SetUserAccountReq;
@@ -32,6 +36,7 @@ import com.juggle.chat.exceptions.JimException;
 import com.juggle.chat.interceptors.RequestContext;
 import com.juggle.chat.services.UserService;
 import com.juggle.chat.utils.CommonUtil;
+import com.juggle.chat.exceptions.JimErrorCode;
 
 @RestController
 @RequestMapping("/jim/users")
@@ -121,17 +126,26 @@ public class UserController {
 
     @PostMapping("/blockusers/add")
     public Result blockUsers(@RequestBody BlockUsersReq req){
-        return new Result(0, "");
+        if(req==null||req.getBlockUserIds()==null||req.getBlockUserIds().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        this.userService.blockUsers(req);
+        return Result.success(null);
     }
 
     @PostMapping("/blockusers/del")
     public Result unBlockUsers(@RequestBody BlockUsersReq req){
-        return new Result(0, "");
+        if(req==null||req.getBlockUserIds()==null||req.getBlockUserIds().isEmpty()){
+            throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
+        }
+        this.userService.unBlockUsers(req);
+        return Result.success(null);
     }
 
     @GetMapping("/blockusers/list")
     public Result qryBlockUsers(@RequestParam(value = "offset", required = false) String offset,
             @RequestParam(value = "count", required = false) Integer count){
-        return new Result(0, "");
+        BlockUsers users = this.userService.qryBlockUsers(offset, count);
+        return Result.success(users);
     }
 }
