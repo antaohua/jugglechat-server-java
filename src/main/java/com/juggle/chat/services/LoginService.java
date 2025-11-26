@@ -51,6 +51,10 @@ public class LoginService {
     @Resource
     private VerificationCodeService verificationCodeService;
 
+    public static void main(String[] args) {
+        System.out.println(CommonUtil.sha1("123456"));
+    }
+
     public LoginUserResp login(LoginReq req) {
         if (req == null || !StringUtils.hasText(req.getPassword())
                 || (!StringUtils.hasText(req.getAccount()) && !StringUtils.hasText(req.getPhone())
@@ -60,12 +64,13 @@ public class LoginService {
         String appkey = RequestContext.getAppkeyFromCtx();
         User user = null;
         if (StringUtils.hasText(req.getAccount())) {
-            user = userMapper.findByAccount(appkey, req.getAccount());
+            user = userMapper.findByAccount(req.getAccount());
         } else if (StringUtils.hasText(req.getPhone())) {
             user = userMapper.findByPhone(appkey, req.getPhone());
         } else {
             user = userMapper.findByEmail(appkey, req.getEmail());
         }
+
         if (user == null) {
             throw new JimException(JimErrorCode.ErrorCode_APP_USER_NOT_EXIST);
         }
@@ -73,7 +78,7 @@ public class LoginService {
         if (user.getLoginPass() == null || !user.getLoginPass().equals(hashed)) {
             throw new JimException(JimErrorCode.ErrorCode_APP_LOGIN_ERR_PASS);
         }
-        return buildLoginResp(appkey, user);
+        return buildLoginResp(user.getAppkey(), user);
     }
 
     public void register(RegisterReq req) {
@@ -90,7 +95,7 @@ public class LoginService {
         user.setLoginPass(CommonUtil.sha1(req.getPassword()));
         if (StringUtils.hasText(req.getAccount())) {
             validateAccount(req.getAccount());
-            User existed = userMapper.findByAccount(appkey, req.getAccount());
+            User existed = userMapper.findByAccount(req.getAccount());
             if (existed != null) {
                 throw new JimException(JimErrorCode.ErrorCode_APP_USER_EXISTED);
             }

@@ -41,4 +41,17 @@
         </if>
         LIMIT #{limit}
     </select>
+    
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM postcomments WHERE app_key=#{appkey} AND comment_id=#{commentId} LIMIT 1
+    </select>
+
+
+    <update id="updateComment">
+        UPDATE postcomments SET text=#{text} WHERE app_key=#{appkey} AND comment_id=#{commentId}
+    </update>
+
+    <delete id="delete">
+        UPDATE postcomments SET is_delete = 1 WHERE app_key=#{appkey} AND comment_id=#{commentId}
+    </delete>
 </mapper>

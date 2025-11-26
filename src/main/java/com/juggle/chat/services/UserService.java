@@ -120,12 +120,11 @@ public class UserService {
         if(!req.getAccount().matches("[A-Za-z0-9]{6,20}")){
             throw new JimException(JimErrorCode.ErrorCode_APP_REQ_BODY_ILLEGAL);
         }
-        String appkey = RequestContext.getAppkeyFromCtx();
-        User exist = this.userMapper.findByAccount(appkey, req.getAccount());
+        User exist = this.userMapper.findByAccount(req.getAccount());
         if(exist!=null){
             throw new JimException(JimErrorCode.ErrorCode_APP_USER_EXISTED);
         }
-        this.userMapper.updateAccount(appkey, RequestContext.getCurrentUserIdFromCtx(), req.getAccount());
+        this.userMapper.updateAccount(exist.getAppkey(), RequestContext.getCurrentUserIdFromCtx(), req.getAccount());
     }
 
     public void bindEmailSend(BindEmailReq req)throws JimException{

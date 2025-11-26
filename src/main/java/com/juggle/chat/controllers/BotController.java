@@ -20,7 +20,7 @@ public class BotController {
 
     @GetMapping("/list")
     public Result qryBots(@RequestParam String offset, @RequestParam int count)throws JimException{
-        if(count<=0){
+        if (count <= 0) {
             count = 20;
         }
         AiBotInfos botInfos = botService.qryAiBots(count, offset);

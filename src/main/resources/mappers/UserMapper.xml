@@ -40,7 +40,7 @@
     </select>
 
     <select id="findByAccount" resultMap="BaseResultMap">
-        SELECT * FROM users WHERE app_key=#{appkey} AND login_account=#{account}
+        SELECT * FROM users WHERE login_account=#{account}
     </select>
 
     <select id="searchByKeyword" resultMap="BaseResultMap">

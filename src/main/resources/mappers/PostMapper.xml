@@ -21,6 +21,14 @@
         INSERT INTO posts (post_id,title,content,content_brief,post_exset,is_delete,user_id,created_time,status,app_key)
         VALUES (#{postId},#{title},#{cotnent},#{contentBrief},#{postExset},#{isDelete},#{userId},#{createdTime},#{status},#{appkey})
     </insert>
+    <update id="updateContent">
+        UPDATE posts SET content=#{content}, content_brief=#{contentBrief}, post_exset=#{postExset}, updated_time=#{updatedTime}
+        WHERE app_key=#{appkey} AND post_id=#{postId}
+    </update>
+    <update id="delete">
+        UPDATE posts SET is_delete = 1, updated_time=#{updatedTime} WHERE app_key=#{appkey} AND post_id=#{postId}
+    </update>
+
 
     <select id="findById" resultMap="BaseResultMap">
         SELECT * FROM posts WHERE app_key=#{appkey} AND post_id=#{postId}

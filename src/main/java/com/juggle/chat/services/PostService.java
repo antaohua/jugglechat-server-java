@@ -94,7 +94,7 @@ public class PostService {
         if (!userId.equals(dbPost.getUserId())) {
             throw new JimException(JimErrorCode.ErrorCode_APP_POST_NORIGHT);
         }
-        byte[] content = CommonUtil.toJson(req.getContent()).getBytes(StandardCharsets.UTF_8);
+        String content = CommonUtil.toJson(req.getContent());
         int updated = postMapper.updateContent(appkey, req.getPostId(), content);
         if (updated <= 0) {
             throw new JimException(JimErrorCode.ErrorCode_APP_POST_DEFAULT);

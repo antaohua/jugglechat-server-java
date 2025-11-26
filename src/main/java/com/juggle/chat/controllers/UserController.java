@@ -145,8 +145,9 @@ public class UserController {
             throw new JimException(JimErrorCode.ErrorCode_APP_NOT_EXISTED);
         }
         try {
-            Object resp = sdk.user.queryOnlineStatus(req.getUserIds());
-            return Result.success(resp);
+//            Object resp = sdk.user.queryOnlineStatus(req.getUserIds());
+//            return Result.success(resp);
+            return Result.success(null);
         } catch (Exception e) {
             throw new JimException(JimErrorCode.ErrorCode_APP_INTERNAL_TIMEOUT);
         }

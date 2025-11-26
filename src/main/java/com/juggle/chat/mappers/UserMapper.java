@@ -13,7 +13,7 @@ public interface UserMapper {
     List<User> findByUserIds(@Param("appkey") String appkey, @Param("userIds") List<String> userIds);
     User findByPhone(@Param("appkey") String appkey, @Param("phone")String phone);
     User findByEmail(@Param("appkey") String appkey, @Param("email")String email);
-    User findByAccount(@Param("appkey")String appkey, @Param("account")String account);
+    User findByAccount(@Param("account")String account);
     List<User> searchByKeyword(@Param("appkey")String appkey, @Param("userId")String userId,
             @Param("keyword")String keyword, @Param("startId")Long startId, @Param("limit")Long limit);
     int create(User user);

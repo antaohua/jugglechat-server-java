@@ -16,4 +16,10 @@ public interface PostCommentMapper {
                                          @Param("startTime")long startTime, 
                                          @Param("limit")long limit, 
                                          @Param("isPositive")Boolean isPositive);
+
+    PostComment findById(@Param("appkey")String appkey, @Param("commentId")String commentId);
+
+    int updateComment (@Param("appkey")String appkey, @Param("commentId")String commentId, @Param("text")String text);
+
+    int delete(@Param("appkey")String appkey, @Param("commentId")String commentId);
 }

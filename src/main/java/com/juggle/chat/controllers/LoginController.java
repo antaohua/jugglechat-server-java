@@ -2,6 +2,7 @@ package com.juggle.chat.controllers;
 
 import jakarta.annotation.Resource;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,13 +22,13 @@ import com.juggle.chat.exceptions.JimException;
 import com.juggle.chat.services.LoginService;
 
 @RestController
-@RequestMapping("/jim")
+@RequestMapping("/admingateway")
 public class LoginController {
     @Resource
     private LoginService loginService;
 
 
-    @PostMapping("/login")
+    @PostMapping(path = "/login",consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_PLAIN_VALUE })
     public Result login(@RequestBody LoginReq req) throws JimException {
         LoginUserResp resp = loginService.login(req);
         return Result.success(resp);

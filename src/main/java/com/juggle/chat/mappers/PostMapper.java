@@ -13,4 +13,8 @@ public interface PostMapper {
     Post findById(@Param("appkey")String appkey, @Param("postId")String postId);
     List<Post> findByIds(@Param("appkey")String appkey,@Param("postIds")List<String> postIds);
     List<Post> qryPosts(@Param("appkey")String appkey, @Param("startTime")Long startTime, @Param("limit")long limit,@Param("isPositive")Boolean isPositive);
+
+    int updateContent(@Param("appkey")String appkey, @Param("postId")String postId, @Param("text")String text);
+
+    int delete(@Param("appkey")String appkey, @Param("postId")String postId);
 }
